@@ -54,7 +54,7 @@ Enter your query or q to quit >
 ### Speech
 
 ```nim
-  echo w.speech("/home/striky/startnewvm.ogg", {"Content-Type": "audio/ogg"}.toTable)
+  echo w.speech("/home/striky/startnewvm.wav", {"Content-Type": "audio/wav"}.toTable)
 ```
 
 
