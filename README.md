@@ -51,9 +51,27 @@ view coins
 Enter your query or q to quit >
 
 ```
+### Speech
 
+```nim
+  echo w.speech("/home/striky/startnewvm.ogg", {"Content-Type": "audio/ogg"}.toTable)
+```
+
+
+```
+{
+  "_text" : "start new the m is",
+  "entities" : {
+    "vm" : [ {
+      "confidence" : 0.54805678200202,
+      "value" : "create"
+    } ]
+  },
+  "msg_id" : "1jHMTJGHEAFh8LHFS"
+}
+```
 
 ## Roadmap
-- [] Speech endpoint
+- [X] Speech endpoint
 - [] tests
 - [] async client
