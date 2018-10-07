@@ -47,10 +47,18 @@ proc newWit(accessToken:string): Wit =
   result = w
 
 
-proc newRequest(this: Wit, meth=HttpGet, path:string, params:Table[string,string]): string =
+proc newRequest(this: Wit, meth=HttpGet, path:string, params:Table[string,string], body="", headers: Table[string,string]): string =
   let fullUrl = WIT_API_HOST & path & encodeQueryStringTable(params)
   this.client.headers = getWitAIRequestHeaders(this.accessToken)
-  let resp = this.client.request(fullUrl, httpMethod=meth)
+  if headers.len>0:
+    for k,v in headers:
+      this.client.headers[k] = v
+  
+  var resp: Response
+  if body == "":
+    resp = this.client.request(fullUrl, httpMethod=meth)
+  else:
+    resp = this.client.request(fullUrl, httpMethod=meth, body=body)
   if resp.code != 200.HttpCode:
     raise newException(WitException, (fmt"[-] {resp.code}: {resp.body} "))
 
@@ -72,16 +80,40 @@ proc message*(this: Wit, msg:string, context:ref Table[string, string]=nil, n=""
 
     params["context"] = (%* ctxNode).pretty()
 
-  return this.newRequest(HttpGet, path="/message", params)
+  return this.newRequest(HttpGet, path="/message", params, "", initTable[string,string]())
+
+
+
+proc speech*(this: Wit, audioFilePath:string, headers: Table[string, string], context:ref Table[string, string]=nil, n="", verbose=""): string = 
+  var params = initTable[string, string]()
+  if n != "":
+    params["n"] = n
+  if verbose != "":
+    params["verbose"] = verbose
+    
+  if not context.isNil and context.len > 0:
+    var ctxNode = %* {}
+    for k, v in context.pairs:
+      ctxNode[k] = %*v 
+
+    params["context"] = (%* ctxNode).pretty()
+  let body = readFile(audioFilePath) 
+  
+  return this.newRequest(HttpPost, path="/speech", params, body, headers)
+
+
 
 when isMainModule:
+
   let tok = getEnv("WIT_ACCESS_TOKEN", "")
   if tok == "":
     echo "Make sure to set WIT_ACCESS_TOKEN variable"
     quit 1
+
   var inp = ""
   var w = newWit(tok)
 
+  echo w.speech("/home/striky/startnewvm.wav", {"Content-Type": "audio/wav"}.toTable)
   while true:
     echo "Enter your query or q to quit > "
     inp = stdin.readLine()
